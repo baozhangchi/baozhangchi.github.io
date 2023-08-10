@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="要在C#中获取Linux系统的CPU、内存、硬盘IO和硬盘使用空间情况信息，可以使用Linux系统上的一些命令行工具，通过C#代码执行这些命令并解析输出结果。 以下是一些可以使用的命令行工具和相应的C#代码示例：  获取CPU信息可以使用 &#x2F;proc&#x2F;stat 文件来获取 CPU 的使用情况。C# 可以通过读取该文件的内容来获取 CPU 的使用率。 using System; using Syst">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息">
+<meta property="og:url" content="https://blog.bzhang.icu/7ace05a1.html">
+<meta property="og:site_name" content="先飞的笨鸟">
+<meta property="og:description" content="要在C#中获取Linux系统的CPU、内存、硬盘IO和硬盘使用空间情况信息，可以使用Linux系统上的一些命令行工具，通过C#代码执行这些命令并解析输出结果。 以下是一些可以使用的命令行工具和相应的C#代码示例：  获取CPU信息可以使用 &#x2F;proc&#x2F;stat 文件来获取 CPU 的使用情况。C# 可以通过读取该文件的内容来获取 CPU 的使用率。 using System; using Syst">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-03-17T02:10:47.000Z">
+<meta property="article:modified_time" content="2023-03-17T02:10:47.000Z">
+<meta property="article:author" content="Zhangchi Bao">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2913726a.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/4b419777.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://blog.bzhang.icu/7ace05a1.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://blog.bzhang.icu/7ace05a1.html&text=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.bzhang.icu/7ace05a1.html&is_video=false&description=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息&body=看看这篇文章: https://blog.bzhang.icu/7ace05a1.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://blog.bzhang.icu/7ace05a1.html&name=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://blog.bzhang.icu/7ace05a1.html&t=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Zhangchi Bao</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-17T02:10:47.000Z" itemprop="datePublished">03-17</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/">开发</a> › <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/C/">C#</a> › <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/C/Linux/">Linux</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/C/" rel="tag">C#</a>, <a class="tag-link-link" href="/tags/Linux/" rel="tag">Linux</a>, <a class="tag-link-link" href="/tags/%E5%BC%80%E5%8F%91/" rel="tag">开发</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>要在C#中获取Linux系统的CPU、内存、硬盘IO和硬盘使用空间情况信息，可以使用Linux系统上的一些命令行工具，通过C#代码执行这些命令并解析输出结果。</p>
+<p>以下是一些可以使用的命令行工具和相应的C#代码示例：</p>
+<ol>
+<li><p>获取CPU信息<br>可以使用 <code>/proc/stat</code> 文件来获取<code> CPU</code> 的使用情况。<code>C# </code>可以通过读取该文件的内容来获取 <code>CPU</code> 的使用率。</p>
+<pre><code class="highlight C#"><span class="keyword">using</span> System;
+<span class="keyword">using</span> System.IO;
+<span class="keyword">using</span> System.Linq;
+
+<span class="keyword">class</span> <span class="title">Program</span> &#123;
+    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="built_in">string</span>[] args</span>)</span> &#123;
+        <span class="built_in">string</span> statFilePath = <span class="string">&quot;/proc/stat&quot;</span>;
+        <span class="built_in">long</span> prevIdleTime = <span class="number">0</span>, prevTotalTime = <span class="number">0</span>;
+
+        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;
+            <span class="built_in">string</span>[] statFileContent = File.ReadAllText(statFilePath).Split(<span class="string">&#x27;\n&#x27;</span>);
+            <span class="built_in">string</span> cpuStatLine = statFileContent.FirstOrDefault(line =&gt; line.StartsWith(<span class="string">&quot;cpu &quot;</span>));
+            <span class="built_in">string</span>[] cpuStats = cpuStatLine.Split(<span class="string">&#x27; &#x27;</span>, StringSplitOptions.RemoveEmptyEntries);
+
+            <span class="built_in">long</span> idleTime = <span class="built_in">long</span>.Parse(cpuStats[<span class="number">4</span>]);
+            <span class="built_in">long</span> totalTime = cpuStats.Select(<span class="built_in">long</span>.Parse).Sum();
+
+            <span class="keyword">if</span> (prevIdleTime != <span class="number">0</span>) &#123;
+                <span class="built_in">double</span> idleTimeDelta = idleTime - prevIdleTime;
+                <span class="built_in">double</span> totalTimeDelta = totalTime - prevTotalTime;
+                <span class="built_in">double</span> cpuUsage = (totalTimeDelta - idleTimeDelta) / totalTimeDelta;
+
+                Console.WriteLine(<span class="string">$&quot;CPU usage: <span class="subst">&#123;cpuUsage:P&#125;</span>&quot;</span>);
+            &#125;
+
+            prevIdleTime = idleTime;
+            prevTotalTime = totalTime;
+
+            System.Threading.Thread.Sleep(<span class="number">1000</span>);
+        &#125;
+    &#125;
+&#125;</code></pre>
+<p> 在该示例代码中，我们首先定义了一个<code> statFilePath</code> 变量来存储<code> /proc/stat</code> 文件的路径。然后在一个无限循环中，我们读取<code> /proc/stat</code> 文件的内容，并从中提取出与 <code>CPU</code> 相关的数据。</p>
+<p> 我们使用 cpu 这一行的数据来计算 CPU 的使用率。具体地，我们计算出从上一次循环到现在<code>CPU</code>空闲时间的变化量 <code>idleTimeDelta</code> 和总时间的变化量 <code>totalTimeDelta</code>，然后使用这两个变化量来计算<code> CPU</code> 的使用率。</p>
+<p> 最后，我们将当前的空闲时间和总时间保存到 <code>prevIdleTime</code> 和 <code>prevTotalTime</code> 变量中，以便下一次循环使用。我们还在每次循环结束前暂停了 1 秒钟，以便在连续的循环中计算<code>CPU</code>使用率的变化。</p>
+</li>
+<li><p>获取内存使用情况</p>
+<p> 在<code>Linux</code>下，可以使用一些命令行工具来获取内存使用情况，比如<code>top</code>，<code>free</code>，<code>vmstat</code>等。你可以通过调用这些命令行工具，来获取内存使用情况。</p>
+<p> 如果你想要使用<code>C#</code>代码来获取内存使用情况，可以使用<code>System.Diagnostics</code>命名空间下的<code>Process</code>类来调用这些命令行工具。具体方法如下：</p>
+<ol>
+<li>导入System.Diagnostics命名空间</li>
+</ol>
+ <pre><code class="highlight C#"><span class="keyword">using</span> System.Diagnostics;</code></pre>
+<ol start="2">
+<li>创建一个Process对象，设置它的StartInfo属性，包括FileName和Arguments</li>
+</ol>
+ <pre><code class="highlight C#">Process process = <span class="keyword">new</span> Process();
+process.StartInfo.FileName = <span class="string">&quot;free&quot;</span>;
+process.StartInfo.Arguments = <span class="string">&quot;-m&quot;</span>;
+process.StartInfo.UseShellExecute = <span class="literal">false</span>;
+process.StartInfo.RedirectStandardOutput = <span class="literal">true</span>;</code></pre>
+<p>   这里的命令行工具是free，-m表示以MB为单位显示内存使用情况。<br> 3. 启动进程并等待它完成</p>
+ <pre><code class="highlight C#">process.Start();
+process.WaitForExit();</code></pre>
+<ol start="4">
+<li>从进程的StandardOutput属性中读取输出结果</li>
+</ol>
+ <pre><code class="highlight C#"><span class="built_in">string</span> output = process.StandardOutput.ReadToEnd();</code></pre>
+<ol start="5">
+<li>对输出结果进行解析，获取内存使用情况</li>
+</ol>
+ <pre><code class="highlight C#"><span class="built_in">string</span>[] lines = output.Split(<span class="string">&#x27;\n&#x27;</span>);
+<span class="built_in">string</span>[] parts = lines[<span class="number">1</span>].Split(<span class="keyword">new</span> <span class="built_in">char</span>[] &#123; <span class="string">&#x27; &#x27;</span> &#125;, StringSplitOptions.RemoveEmptyEntries);
+<span class="built_in">int</span> totalMemory = <span class="built_in">int</span>.Parse(parts[<span class="number">1</span>]);
+<span class="built_in">int</span> usedMemory = <span class="built_in">int</span>.Parse(parts[<span class="number">2</span>]);
+<span class="built_in">int</span> freeMemory = <span class="built_in">int</span>.Parse(parts[<span class="number">3</span>]);</code></pre>
+<p> 这样，你就可以通过C#代码获取Linux下的内存使用情况了。</p>
+</li>
+<li><p>获取硬盘IO信息<br> 可以使用iostat命令获取硬盘IO信息。在Linux系统上执行iostat命令后，会输出当前系统的硬盘IO情况信息。可以通过解析输出结果来获取硬盘读写速度和IO使用率等信息。</p>
+ <pre><code class="highlight C#"><span class="keyword">using</span> System.Diagnostics;
+<span class="keyword">using</span> System.IO;
+
+<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">GetDiskIOInfo</span>()</span>
+&#123;
+    <span class="comment">// Create a new process to run the iostat command</span>
+    Process process = <span class="keyword">new</span> Process();
+    process.StartInfo.FileName = <span class="string">&quot;iostat&quot;</span>;
+    process.StartInfo.Arguments = <span class="string">&quot;-d -x&quot;</span>;  <span class="comment">// -d: show only device utilization, -x: show extended statistics</span>
+    process.StartInfo.UseShellExecute = <span class="literal">false</span>;
+    process.StartInfo.RedirectStandardOutput = <span class="literal">true</span>;
+
+    <span class="comment">// Start the process and read the output</span>
+    process.Start();
+    process.WaitForExit();
+    <span class="built_in">string</span> output = process.StandardOutput.ReadToEnd();
+    
+    <span class="comment">// Parse the output and extract the relevant information</span>
+    StringReader reader = <span class="keyword">new</span> StringReader(output);
+    <span class="built_in">string</span> line;
+    <span class="keyword">while</span> ((line = reader.ReadLine()) != <span class="literal">null</span>)
+    &#123;
+        <span class="comment">// Find the line that starts with a device name (e.g. &quot;sda&quot;)</span>
+        <span class="keyword">if</span> (line.StartsWith(<span class="string">&quot;sda&quot;</span>))
+        &#123;
+            <span class="built_in">string</span>[] values = line.Split(<span class="keyword">new</span>[] &#123; <span class="string">&#x27; &#x27;</span> &#125;, StringSplitOptions.RemoveEmptyEntries);
+            <span class="built_in">double</span> readRate = <span class="built_in">double</span>.Parse(values[<span class="number">5</span>]);   <span class="comment">// read rate in KB/s</span>
+            <span class="built_in">double</span> writeRate = <span class="built_in">double</span>.Parse(values[<span class="number">6</span>]);  <span class="comment">// write rate in KB/s</span>
+    
+            <span class="comment">// Do something with the read and write rates</span>
+            Console.WriteLine(<span class="string">&quot;Read rate: &#123;0&#125; KB/s, Write rate: &#123;1&#125; KB/s&quot;</span>, readRate, writeRate);
+            <span class="keyword">break</span>;
+        &#125;
+    &#125;
+&#125;</code></pre></li>
+</ol>
+
+  </div>
+</article>
+
+
+
+    <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+    <div class="blog-post-comments">
+       
+    </div>
+    <script>
+        new Valine({
+            el: '.blog-post-comments',
+            app_id: 'ya1fD8uvcQmjkp3OeZpusljU-gzGzoHsz',
+            app_key: 'yw6kj1bWB2CsfYPqbv6btAqE',
+            placeholder: '留下你的足迹'
+        });
+        document.querySelector('body > div.content.index.py4 > div.blog-post-comments.v > div.vpower.txt-right').style.setProperty('display','none')
+    </script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://blog.bzhang.icu/7ace05a1.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://blog.bzhang.icu/7ace05a1.html&text=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.bzhang.icu/7ace05a1.html&is_video=false&description=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息&body=看看这篇文章: https://blog.bzhang.icu/7ace05a1.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://blog.bzhang.icu/7ace05a1.html&title=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://blog.bzhang.icu/7ace05a1.html&name=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://blog.bzhang.icu/7ace05a1.html&t=C# Linux系统获取CPU、内存、硬盘IO和硬盘使用空间情况信息"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    Zhangchi Bao
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

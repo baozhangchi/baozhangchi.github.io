@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="要实现导航，就得先获取到导航的路径，而各个公司的路径计算接口都是在线接口，不提供离线支持，幸好还有个开源的Graphhopper支持离线计算路径  安装Java环境按文档，我们需要安装jdk8以上的版本 下载Graphhopper的graphhopper-web-7.0.jar包和示例配置文件config-example.yml 下载osm.pbf文件，我们可以在openstreetmap下载，这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于瓦片创建离线导航地图WPF应用（三）">
+<meta property="og:url" content="https://blog.bzhang.icu/2b12dcce.html">
+<meta property="og:site_name" content="先飞的笨鸟">
+<meta property="og:description" content="要实现导航，就得先获取到导航的路径，而各个公司的路径计算接口都是在线接口，不提供离线支持，幸好还有个开源的Graphhopper支持离线计算路径  安装Java环境按文档，我们需要安装jdk8以上的版本 下载Graphhopper的graphhopper-web-7.0.jar包和示例配置文件config-example.yml 下载osm.pbf文件，我们可以在openstreetmap下载，这">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/baozhangchi/blog_image/master/images/202303201045378.png">
+<meta property="article:published_time" content="2023-03-20T02:27:30.000Z">
+<meta property="article:modified_time" content="2023-03-20T02:27:30.000Z">
+<meta property="article:author" content="Zhangchi Bao">
+<meta property="article:tag" content="开发">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="GIS">
+<meta property="article:tag" content="WPF">
+<meta property="article:tag" content="GraphHopper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/baozhangchi/blog_image/master/images/202303201045378.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>基于瓦片创建离线导航地图WPF应用（三）</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/ea5b9e52.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/660c7f9c.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://blog.bzhang.icu/2b12dcce.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://blog.bzhang.icu/2b12dcce.html&text=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.bzhang.icu/2b12dcce.html&is_video=false&description=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=基于瓦片创建离线导航地图WPF应用（三）&body=看看这篇文章: https://blog.bzhang.icu/2b12dcce.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://blog.bzhang.icu/2b12dcce.html&name=基于瓦片创建离线导航地图WPF应用（三）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://blog.bzhang.icu/2b12dcce.html&t=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        基于瓦片创建离线导航地图WPF应用（三）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Zhangchi Bao</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-20T02:27:30.000Z" itemprop="datePublished">03-20</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/">开发</a> › <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/C/">C#</a> › <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/C/WPF/">WPF</a> › <a class="category-link" href="/categories/%E5%BC%80%E5%8F%91/C/WPF/GIS/">GIS</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/C/" rel="tag">C#</a>, <a class="tag-link-link" href="/tags/GIS/" rel="tag">GIS</a>, <a class="tag-link-link" href="/tags/GraphHopper/" rel="tag">GraphHopper</a>, <a class="tag-link-link" href="/tags/WPF/" rel="tag">WPF</a>, <a class="tag-link-link" href="/tags/%E5%BC%80%E5%8F%91/" rel="tag">开发</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>要实现导航，就得先获取到导航的路径，而各个公司的路径计算接口都是在线接口，不提供离线支持，幸好还有个开源的<a target="_blank" rel="noopener" href="https://github.com/graphhopper/graphhopper">Graphhopper</a>支持离线计算路径</p>
+<ol>
+<li>安装Java环境<br>按文档，我们需要安装jdk8以上的版本<a target="_blank" rel="noopener" href="https://www.java.com/download/ie_manual.jsp"></a></li>
+<li>下载<code>Graphhopper</code>的<a target="_blank" rel="noopener" href="https://repo1.maven.org/maven2/com/graphhopper/graphhopper-web/7.0/graphhopper-web-7.0.jar">graphhopper-web-7.0.jar</a>包和示例配置文件<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/graphhopper/graphhopper/7.x/config-example.yml">config-example.yml</a></li>
+<li>下载<code>osm.pbf</code>文件，我们可以在<a target="_blank" rel="noopener" href="https://download.openstreetmap.fr/extracts/">openstreetmap</a>下载，这里可以按区域进行下载，最小到省级，以下我们以湖北省的数据为例，下载链接为<a target="_blank" rel="noopener" href="https://download.openstreetmap.fr/extracts/asia/china/hubei.osm.pbf">hubei.osm.pbf</a></li>
+<li>修改配置文件<code>config-example.yml</code><ol>
+<li>打开配置文件，搜索<code>8989</code>，这是默认端口，修改绑定的<code>IP</code>为：<code>0.0.0.0</code><pre><code class="highlight bash">server:
+ application_connectors:
+     - <span class="built_in">type</span>: http
+     port: 8989
+     <span class="comment"># for security reasons bind to localhost</span>
+     bind_host: 0.0.0.0</code></pre></li>
+</ol>
+</li>
+<li>所有文件都下载完成后我们在终端执行一下命令<pre><code class="highlight bash">java -D <span class="string">&quot;dw.graphhopper.datareader.file=hubei.osm.pbf&quot;</span> -jar graphhopper-web-6.2.jar server config-example.yml</code></pre>
+当显示<code>Started application...</code>后打开浏览器访问<code>http:localhost:8989</code><br><img src="https://raw.githubusercontent.com/baozhangchi/blog_image/master/images/202303201045378.png"></li>
+<li>测试导航链接<br><code>Graphhopper</code>的路径获取接口为<a target="_blank" rel="noopener" href="http://localhost:8989/route"></a>，接口参数可以参考接口文档：<a target="_blank" rel="noopener" href="https://docs.graphhopper.com/#operation/getRoute">Graphhopper路径计算接口说明</a>，我们随便给两个点来测试<br>请求链接：<pre><code class="highlight bash">http://localhost:8989/route?point=30.359841397025534,114.73159790039062&amp;point=30.39716079871885,114.62104797363281&amp;<span class="built_in">type</span>=json&amp;locale=zh-CN&amp;key=&amp;elevation=<span class="literal">false</span>&amp;profile=car&amp;points_encoded=<span class="literal">false</span></code></pre>
+接口响应：<pre><code class="highlight json"><span class="punctuation">&#123;</span>
+ <span class="attr">&quot;hints&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>
+     <span class="attr">&quot;visited_nodes.sum&quot;</span><span class="punctuation">:</span> <span class="number">66</span><span class="punctuation">,</span>
+     <span class="attr">&quot;visited_nodes.average&quot;</span><span class="punctuation">:</span> <span class="number">66</span>
+ <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+ <span class="attr">&quot;info&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>
+     <span class="attr">&quot;copyrights&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+         <span class="string">&quot;GraphHopper&quot;</span><span class="punctuation">,</span>
+         <span class="string">&quot;OpenStreetMap contributors&quot;</span>
+     <span class="punctuation">]</span><span class="punctuation">,</span>
+     <span class="attr">&quot;took&quot;</span><span class="punctuation">:</span> <span class="number">31</span>
+ <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+ <span class="attr">&quot;paths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+     <span class="punctuation">&#123;</span>
+         <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">19514.51</span><span class="punctuation">,</span>
+         <span class="attr">&quot;weight&quot;</span><span class="punctuation">:</span> <span class="number">1114.654941</span><span class="punctuation">,</span>
+         <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">1114654</span><span class="punctuation">,</span>
+         <span class="attr">&quot;transfers&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span>
+         <span class="attr">&quot;points_encoded&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span>
+         <span class="attr">&quot;bbox&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+             <span class="number">114.613946</span><span class="punctuation">,</span>
+             <span class="number">30.326794</span><span class="punctuation">,</span>
+             <span class="number">114.730031</span><span class="punctuation">,</span>
+             <span class="number">30.399498</span>
+         <span class="punctuation">]</span><span class="punctuation">,</span>
+         <span class="attr">&quot;points&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>
+             <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;LineString&quot;</span><span class="punctuation">,</span>
+             <span class="attr">&quot;coordinates&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.730031</span><span class="punctuation">,</span>
+                     <span class="number">30.360242</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.727793</span><span class="punctuation">,</span>
+                     <span class="number">30.353731</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.727611</span><span class="punctuation">,</span>
+                     <span class="number">30.353287</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.727319</span><span class="punctuation">,</span>
+                     <span class="number">30.352756</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.726996</span><span class="punctuation">,</span>
+                     <span class="number">30.352296</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.726575</span><span class="punctuation">,</span>
+                     <span class="number">30.351811</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.726024</span><span class="punctuation">,</span>
+                     <span class="number">30.35133</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.725397</span><span class="punctuation">,</span>
+                     <span class="number">30.350891</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.724648</span><span class="punctuation">,</span>
+                     <span class="number">30.350502</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.720162</span><span class="punctuation">,</span>
+                     <span class="number">30.348533</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.71491</span><span class="punctuation">,</span>
+                     <span class="number">30.346098</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.71261</span><span class="punctuation">,</span>
+                     <span class="number">30.344972</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.708633</span><span class="punctuation">,</span>
+                     <span class="number">30.343195</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.700727</span><span class="punctuation">,</span>
+                     <span class="number">30.339601</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.698002</span><span class="punctuation">,</span>
+                     <span class="number">30.338345</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.694452</span><span class="punctuation">,</span>
+                     <span class="number">30.336746</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.693914</span><span class="punctuation">,</span>
+                     <span class="number">30.336641</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.692906</span><span class="punctuation">,</span>
+                     <span class="number">30.336517</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.688923</span><span class="punctuation">,</span>
+                     <span class="number">30.335902</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.688261</span><span class="punctuation">,</span>
+                     <span class="number">30.335872</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.685568</span><span class="punctuation">,</span>
+                     <span class="number">30.336168</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.683604</span><span class="punctuation">,</span>
+                     <span class="number">30.336413</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.680676</span><span class="punctuation">,</span>
+                     <span class="number">30.336812</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.675867</span><span class="punctuation">,</span>
+                     <span class="number">30.337182</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.674045</span><span class="punctuation">,</span>
+                     <span class="number">30.337262</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.673688</span><span class="punctuation">,</span>
+                     <span class="number">30.337207</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.673207</span><span class="punctuation">,</span>
+                     <span class="number">30.336944</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.672756</span><span class="punctuation">,</span>
+                     <span class="number">30.336656</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.672311</span><span class="punctuation">,</span>
+                     <span class="number">30.336261</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.666887</span><span class="punctuation">,</span>
+                     <span class="number">30.33023</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.664749</span><span class="punctuation">,</span>
+                     <span class="number">30.327824</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.663955</span><span class="punctuation">,</span>
+                     <span class="number">30.326794</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.654808</span><span class="punctuation">,</span>
+                     <span class="number">30.329432</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.653512</span><span class="punctuation">,</span>
+                     <span class="number">30.329562</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.652162</span><span class="punctuation">,</span>
+                     <span class="number">30.329657</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.64237</span><span class="punctuation">,</span>
+                     <span class="number">30.329995</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.642076</span><span class="punctuation">,</span>
+                     <span class="number">30.331308</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.641637</span><span class="punctuation">,</span>
+                     <span class="number">30.332639</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.639401</span><span class="punctuation">,</span>
+                     <span class="number">30.337876</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.638919</span><span class="punctuation">,</span>
+                     <span class="number">30.338739</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.638266</span><span class="punctuation">,</span>
+                     <span class="number">30.339726</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.637646</span><span class="punctuation">,</span>
+                     <span class="number">30.340538</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.636195</span><span class="punctuation">,</span>
+                     <span class="number">30.342107</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.630376</span><span class="punctuation">,</span>
+                     <span class="number">30.347983</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.62918</span><span class="punctuation">,</span>
+                     <span class="number">30.349509</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.628369</span><span class="punctuation">,</span>
+                     <span class="number">30.350667</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.626333</span><span class="punctuation">,</span>
+                     <span class="number">30.354281</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.626057</span><span class="punctuation">,</span>
+                     <span class="number">30.354836</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.624789</span><span class="punctuation">,</span>
+                     <span class="number">30.356966</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.623004</span><span class="punctuation">,</span>
+                     <span class="number">30.360047</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.62213</span><span class="punctuation">,</span>
+                     <span class="number">30.36131</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.621285</span><span class="punctuation">,</span>
+                     <span class="number">30.362393</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.620281</span><span class="punctuation">,</span>
+                     <span class="number">30.363538</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616983</span><span class="punctuation">,</span>
+                     <span class="number">30.367069</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616302</span><span class="punctuation">,</span>
+                     <span class="number">30.367919</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.61571</span><span class="punctuation">,</span>
+                     <span class="number">30.368881</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.6152</span><span class="punctuation">,</span>
+                     <span class="number">30.369942</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614947</span><span class="punctuation">,</span>
+                     <span class="number">30.370684</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614787</span><span class="punctuation">,</span>
+                     <span class="number">30.371286</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614624</span><span class="punctuation">,</span>
+                     <span class="number">30.372265</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614579</span><span class="punctuation">,</span>
+                     <span class="number">30.373304</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614654</span><span class="punctuation">,</span>
+                     <span class="number">30.374339</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614864</span><span class="punctuation">,</span>
+                     <span class="number">30.37543</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.615408</span><span class="punctuation">,</span>
+                     <span class="number">30.376924</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616237</span><span class="punctuation">,</span>
+                     <span class="number">30.378422</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.618232</span><span class="punctuation">,</span>
+                     <span class="number">30.38177</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.618551</span><span class="punctuation">,</span>
+                     <span class="number">30.382374</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.618723</span><span class="punctuation">,</span>
+                     <span class="number">30.382789</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.618792</span><span class="punctuation">,</span>
+                     <span class="number">30.383005</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.618855</span><span class="punctuation">,</span>
+                     <span class="number">30.383341</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.61884</span><span class="punctuation">,</span>
+                     <span class="number">30.383617</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616953</span><span class="punctuation">,</span>
+                     <span class="number">30.389101</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.61677</span><span class="punctuation">,</span>
+                     <span class="number">30.389783</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616995</span><span class="punctuation">,</span>
+                     <span class="number">30.390167</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.617038</span><span class="punctuation">,</span>
+                     <span class="number">30.390424</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.617025</span><span class="punctuation">,</span>
+                     <span class="number">30.390616</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616936</span><span class="punctuation">,</span>
+                     <span class="number">30.391051</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616837</span><span class="punctuation">,</span>
+                     <span class="number">30.391229</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616523</span><span class="punctuation">,</span>
+                     <span class="number">30.391398</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616201</span><span class="punctuation">,</span>
+                     <span class="number">30.3915</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616094</span><span class="punctuation">,</span>
+                     <span class="number">30.391629</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.616024</span><span class="punctuation">,</span>
+                     <span class="number">30.391782</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.615262</span><span class="punctuation">,</span>
+                     <span class="number">30.393903</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.614407</span><span class="punctuation">,</span>
+                     <span class="number">30.396633</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.613946</span><span class="punctuation">,</span>
+                     <span class="number">30.398521</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.61431</span><span class="punctuation">,</span>
+                     <span class="number">30.398618</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.617237</span><span class="punctuation">,</span>
+                     <span class="number">30.398616</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.618621</span><span class="punctuation">,</span>
+                     <span class="number">30.398995</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.619573</span><span class="punctuation">,</span>
+                     <span class="number">30.399498</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.619725</span><span class="punctuation">,</span>
+                     <span class="number">30.399336</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.62024</span><span class="punctuation">,</span>
+                     <span class="number">30.398961</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.620511</span><span class="punctuation">,</span>
+                     <span class="number">30.398735</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.620348</span><span class="punctuation">,</span>
+                     <span class="number">30.39857</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.620282</span><span class="punctuation">,</span>
+                     <span class="number">30.398442</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.620602</span><span class="punctuation">,</span>
+                     <span class="number">30.39836</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.621001</span><span class="punctuation">,</span>
+                     <span class="number">30.398371</span>
+                 <span class="punctuation">]</span>
+             <span class="punctuation">]</span>
+         <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+         <span class="attr">&quot;instructions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;ref&quot;</span><span class="punctuation">:</span> <span class="string">&quot;G316&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">8018.259</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;heading&quot;</span><span class="punctuation">:</span> <span class="number">196.52</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">0</span><span class="punctuation">,</span>
+                     <span class="number">31</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;继续行驶到 汽李线&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">412368</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;汽李线&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">2121.311</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">31</span><span class="punctuation">,</span>
+                     <span class="number">35</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;右转 到  凤莲大道&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">117488</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;凤莲大道&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">8577.373</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">35</span><span class="punctuation">,</span>
+                     <span class="number">84</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;右转&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">475054</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">563.627</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">84</span><span class="punctuation">,</span>
+                     <span class="number">88</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;右转&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">67635</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">123.95</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">88</span><span class="punctuation">,</span>
+                     <span class="number">91</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;右转&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">22311</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">39.705</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">91</span><span class="punctuation">,</span>
+                     <span class="number">93</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;右转&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">7147</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">70.285</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">-2</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">93</span><span class="punctuation">,</span>
+                     <span class="number">95</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;左转&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">12651</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span>
+             <span class="punctuation">&#125;</span><span class="punctuation">,</span>
+             <span class="punctuation">&#123;</span>
+                 <span class="attr">&quot;distance&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;sign&quot;</span><span class="punctuation">:</span> <span class="number">4</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;last_heading&quot;</span><span class="punctuation">:</span> <span class="number">88.07507226751014</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;interval&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                     <span class="number">95</span><span class="punctuation">,</span>
+                     <span class="number">95</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;终点到达&quot;</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span>
+                 <span class="attr">&quot;street_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span>
+             <span class="punctuation">&#125;</span>
+         <span class="punctuation">]</span><span class="punctuation">,</span>
+         <span class="attr">&quot;legs&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span>
+         <span class="attr">&quot;details&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span>
+         <span class="attr">&quot;ascend&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span>
+         <span class="attr">&quot;descend&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span>
+         <span class="attr">&quot;snapped_waypoints&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>
+             <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;LineString&quot;</span><span class="punctuation">,</span>
+             <span class="attr">&quot;coordinates&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.730031</span><span class="punctuation">,</span>
+                     <span class="number">30.360242</span>
+                 <span class="punctuation">]</span><span class="punctuation">,</span>
+                 <span class="punctuation">[</span>
+                     <span class="number">114.621001</span><span class="punctuation">,</span>
+                     <span class="number">30.398371</span>
+                 <span class="punctuation">]</span>
+             <span class="punctuation">]</span>
+         <span class="punctuation">&#125;</span>
+     <span class="punctuation">&#125;</span>
+ <span class="punctuation">]</span>
+<span class="punctuation">&#125;</span></code></pre></li>
+</ol>
+
+  </div>
+</article>
+
+
+
+    <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+    <div class="blog-post-comments">
+       
+    </div>
+    <script>
+        new Valine({
+            el: '.blog-post-comments',
+            app_id: 'ya1fD8uvcQmjkp3OeZpusljU-gzGzoHsz',
+            app_key: 'yw6kj1bWB2CsfYPqbv6btAqE',
+            placeholder: '留下你的足迹'
+        });
+        document.querySelector('body > div.content.index.py4 > div.blog-post-comments.v > div.vpower.txt-right').style.setProperty('display','none')
+    </script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+         
+          <li><a href="/search/">搜索</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://blog.bzhang.icu/2b12dcce.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://blog.bzhang.icu/2b12dcce.html&text=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.bzhang.icu/2b12dcce.html&is_video=false&description=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=基于瓦片创建离线导航地图WPF应用（三）&body=看看这篇文章: https://blog.bzhang.icu/2b12dcce.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://blog.bzhang.icu/2b12dcce.html&title=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://blog.bzhang.icu/2b12dcce.html&name=基于瓦片创建离线导航地图WPF应用（三）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://blog.bzhang.icu/2b12dcce.html&t=基于瓦片创建离线导航地图WPF应用（三）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    Zhangchi Bao
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
